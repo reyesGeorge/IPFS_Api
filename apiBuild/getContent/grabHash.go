@@ -2,17 +2,31 @@ package getContent
 
 import (
 	"fmt"
+	"os"
+	"strings"
 
-	httpapi "github.com/ipfs/go-ipfs-http-client"
+	shell "github.com/ipfs/go-ipfs-api"
 )
 
-func HashGrabber(x string) {
+func HashGrabber(path string) {
 
-	fmt.Println(httpapi.NewLocalApi())
+	sh := shell.NewShell("localhost:5001")
+	cid, err := sh.BlockGet(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s", err)
+		os.Exit(1)
+	}
 
-	// path := "QmP8jTG1m9GSDJLCbeWhVSVgEzCPPwXRdCRuJtQ5Tz9Kc9"
+	fmt.Printf("added %s", cid)
+}
 
-	// httpapi.NewURLApiWithClient(path)
+func StoreNReadString() {
 
-	// fmt.Print(httpapi.NewRequest(context.Background(), path, "get"))
+	sh := shell.NewShell("localhost:5001")
+	cid, err := sh.Add(strings.NewReader("Hello it Works!"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s", err)
+		os.Exit(1)
+	}
+	HashGrabber(cid)
 }
