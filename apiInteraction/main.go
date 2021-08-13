@@ -5,6 +5,11 @@ import (
 
 	"github.com/gin-contrib/cors"
 
+	"fmt"
+	"os"
+
+	shell "github.com/ipfs/go-ipfs-api"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,7 +37,27 @@ func main() {
 	router.GET("/albums/:id", getAlbumByID)
 	router.POST("/albums", postAlbums)
 
+	router.GET("/:hash", HashGrabber)
+
 	router.Run("localhost:8000")
+}
+
+func HashGrabber(c *gin.Context) {
+
+	hash := c.Param("hash")
+
+	sh := shell.NewShell("localhost:5001")
+	cid, err := sh.BlockGet(hash)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s", err)
+		os.Exit(1)
+	}
+
+	// fmt.Printf("added %s", cid)
+	fmt.Printf("%T\n", cid)
+
+	c.JSON(http.StatusOK, string(cid))
+
 }
 
 // getAlbums function responds with the list of all albums as json
