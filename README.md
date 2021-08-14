@@ -10,7 +10,7 @@
 5. open up the vueAPI file and: cd vuetau
 6. run: npm run serve
 
-# The API
+## The API
 7. go to the IPFS tab
 8. Type in a string
 9. copy the hash that appears
