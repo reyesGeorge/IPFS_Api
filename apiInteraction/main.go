@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 
@@ -11,33 +12,18 @@ import (
 	shell "github.com/ipfs/go-ipfs-api"
 
 	"github.com/gin-gonic/gin"
+	// "crypto/aes"
+	// "crypto/cipher"
+	// "crypto/rand"
+	// "encoding/base64"
 )
-
-// data about record album
-
-type album struct {
-	ID     string  `json:"id"`
-	Title  string  `json:"title"`
-	Artist string  `json:"artist"`
-	Price  float64 `json:"price"`
-}
-
-// albums slice to seed record album data.
-var albums = []album{
-	{ID: "1", Title: "Blue Train", Artist: "John Coltrane", Price: 56.99},
-	{ID: "2", Title: "Jeru", Artist: "Gerry Mulligan", Price: 17.99},
-	{ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
-}
 
 func main() {
 	router := gin.Default()
 	router.Use(cors.Default())
 
-	router.GET("/albums", getAlbums)
-	router.GET("/albums/:id", getAlbumByID)
-	router.POST("/albums", postAlbums)
-
 	router.GET("/:hash", HashGrabber)
+	router.POST("/:data", StoreNReadString)
 
 	router.Run("localhost:8000")
 }
@@ -45,6 +31,7 @@ func main() {
 func HashGrabber(c *gin.Context) {
 
 	hash := c.Param("hash")
+	// key := []byte("123456789012345678901234")
 
 	sh := shell.NewShell("localhost:5001")
 	cid, err := sh.BlockGet(hash)
@@ -53,45 +40,85 @@ func HashGrabber(c *gin.Context) {
 		os.Exit(1)
 	}
 
-	// fmt.Printf("added %s", cid)
+	fmt.Printf("added %s", cid)
 	fmt.Printf("%T\n", cid)
+
+	// newCid := string(cid)
+
+	// encrypt base64 crypto to original value
+	// text := decrypt(key, cid)
+	// fmt.Printf(text)
 
 	c.JSON(http.StatusOK, string(cid))
 
 }
 
-// getAlbums function responds with the list of all albums as json
-func getAlbums(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, albums)
-}
+func StoreNReadString(c *gin.Context) {
 
-// postAlbums adds an album from JSON received in the request body
-func postAlbums(c *gin.Context) {
-	var newAlbum album
+	data := c.Param("data")
 
-	// Call BindJSON to bind the received JSON to newAlbum
-	if err := c.BindJSON(&newAlbum); err != nil {
-		return
+	// key := []byte("1234561234561234561234561234561234561234561234")
+
+	// encrypt value to base64
+	// cryptoText := encrypt(key, data)
+
+	sh := shell.NewShell("localhost:5001")
+	cid, err := sh.Add(strings.NewReader(data))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s", err)
+		os.Exit(1)
 	}
-
-	// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-
-	// Add the new album to the slice
-	albums = append(albums, newAlbum)
-	c.IndentedJSON(http.StatusCreated, newAlbum)
+	// HashGrabber(cid)
+	c.JSON(http.StatusOK, string(cid))
 }
 
-// getAlbumByID
-func getAlbumByID(c *gin.Context) {
-	id := c.Param("id")
+// // encrypt string to base64 crypto using AES
+// func encrypt(key []byte, text string) string {
+// 	// key := []byte(keyText)
+// 	plaintext := []byte(text)
 
-	// Loop over the list of albums, looking for
-	// an album whose ID value matches the parameter
-	for _, a := range albums {
-		if a.ID == id {
-			c.IndentedJSON(http.StatusOK, a)
-			return
-		}
-	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
-}
+// 	block, err := aes.NewCipher(key)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	// The IV needs to be unique, but not secure. Therefore it's common to
+// 	// include it at the beginning of the ciphertext.
+// 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+// 	iv := ciphertext[:aes.BlockSize]
+// 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+// 		panic(err)
+// 	}
+
+// 	stream := cipher.NewCFBEncrypter(block, iv)
+// 	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+
+// 	// convert to base64
+// 	return base64.URLEncoding.EncodeToString(ciphertext)
+// }
+
+// // decrypt from base64 to decrypted string
+// func decrypt(key []byte, cryptoText string) string {
+// 	ciphertext, _ := base64.URLEncoding.DecodeString(cryptoText)
+
+// 	block, err := aes.NewCipher(key)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	// The IV needs to be unique, but not secure. Therefore it's common to
+// 	// include it at the beginning of the ciphertext.
+// 	if len(ciphertext) < aes.BlockSize {
+// 		panic("ciphertext too short")
+// 	}
+// 	iv := ciphertext[:aes.BlockSize]
+// 	ciphertext = ciphertext[aes.BlockSize:]
+
+// 	stream := cipher.NewCFBDecrypter(block, iv)
+
+// 	// XORKeyStream can work in-place if the two arguments are the same.
+// 	stream.XORKeyStream(ciphertext, ciphertext)
+
+// 	return fmt.Sprintf("%s", ciphertext)
+
+// }
