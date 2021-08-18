@@ -18,23 +18,32 @@ import (
 	// "encoding/base64"
 )
 
+type inputString struct {
+	MyString string `json:"myString"`
+}
+
 func main() {
 	router := gin.Default()
 	router.Use(cors.Default())
 
-	router.GET("/:hash", HashGrabber)
-	router.POST("/:data", StoreNReadString)
+	router.GET("/ipfs/:hash", hashGrabber)
+
+	// Stricter data types, when sending data through POST request
+	// router.POST("/:data", StoreNReadString)
+
+	router.POST("/ipString", storeNReadString)
 
 	router.Run("localhost:8000")
 }
 
-func HashGrabber(c *gin.Context) {
+func hashGrabber(c *gin.Context) {
 
 	hash := c.Param("hash")
 	// key := []byte("123456789012345678901234")
 
 	sh := shell.NewShell("localhost:5001")
 	cid, err := sh.BlockGet(hash)
+
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %s", err)
 		os.Exit(1)
@@ -53,17 +62,42 @@ func HashGrabber(c *gin.Context) {
 
 }
 
-func StoreNReadString(c *gin.Context) {
+func storeNReadString(c *gin.Context) {
 
-	data := c.Param("data")
+	// data := c.Param("myString")
 
+	// data1 := c.Query("myString")
+	// data2 := c.PostForm("myString")
+	// fmt.Printf(data1)
+	// fmt.Printf(data2)
+
+	// Add the new album to the slice.
+
+	var maString inputString
+
+	// Call BindJSON to bind the received JSON to
+	// newAlbum.
+	if err := c.BindJSON(&maString); err != nil {
+		return
+	}
+
+	// data := maString.MyString
 	// key := []byte("1234561234561234561234561234561234561234561234")
 
 	// encrypt value to base64
 	// cryptoText := encrypt(key, data)
+	// data2, _ := ioutil.ReadAll(c.Request.Body)
+	// fmt.Printf("ctx.Request.body: %v", string(data2))
+
+	fmt.Println(maString.MyString)
+
+	// fmt.Println(data)
+
+	// fmt.Printf("%T\n", data)
 
 	sh := shell.NewShell("localhost:5001")
-	cid, err := sh.Add(strings.NewReader(data))
+
+	cid, err := sh.Add(strings.NewReader(maString.MyString))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %s", err)
 		os.Exit(1)

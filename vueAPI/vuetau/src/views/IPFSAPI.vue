@@ -113,10 +113,12 @@ export default {
   methods: {
     onSubmit1(event) {
       event.preventDefault();
-      alert(JSON.stringify(this.form1.data));
+      console.log(JSON.stringify(this.form1.data));
 
       axios
-        .post(`http://localhost:8000/${this.form1.data}`)
+        .post(`http://localhost:8000/ipString`, {
+          "myString": this.form1.data
+        })
         // .get("http://localhost:8000/"+JSON.stringify(this.form.hash))
         .then(
           (response) => (this.stringHash = response.data)
@@ -137,10 +139,11 @@ export default {
     },
     onSubmit2(event) {
       event.preventDefault();
-      alert(JSON.stringify(this.form2.hash));
+
+      console.log(JSON.stringify(this.form2.hash));
 
       axios
-        .get(`http://localhost:8000/${this.form2.hash}`)
+        .get(`http://localhost:8000/ipfs/${this.form2.hash}`)
         // .get("http://localhost:8000/"+JSON.stringify(this.form.hash))
         .then(
           (response) => (this.albums = response.data)
