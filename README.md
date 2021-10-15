@@ -1,5 +1,7 @@
 # taubyte
 
+> This is assuming you have downloaded IPFS you are comfortable turning on your daemon as well as know how to start a VueJS live server etc...
+
 ## Setup
 1. git clone the project
 2. run go mod tidy inside the respective modules
