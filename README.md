@@ -1,4 +1,4 @@
-# taubyte
+# IPFS Api
 
 > This is assuming you have downloaded IPFS you are comfortable turning on your daemon as well as know how to start a VueJS live server etc...
 
